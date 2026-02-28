@@ -43,25 +43,23 @@ qemu-img create -f qcow2 -F vpc -b 20348.169.amd64fre.fe_release_svc_refresh.210
 
 ## 🎮 起動と運用
 
-### 起動スクリプト (start.sh)
+### 初回起動 (ドライバ導入前)
 Sway環境に最適化した設定です。初回はドライバ未導入のため `if=ide` と `vga std` で起動します。
 
 ```bash
-#!/bin/bash
-qemu-system-x86_64 \
-  -enable-kvm \
-  -cpu host,hv_relaxed,hv_spinlocks=0x1fff,hv_vapic,hv_time \
-  -smp 2 -m 4096 \
-  -drive file=win-server-diff.qcow2,format=qcow2,index=0,media=disk,if=ide \
-  -drive file=data-storage.qcow2,format=qcow2,index=1,media=disk,if=ide \
-  -drive file=virtio-win-0.1.285.iso,media=cdrom \
-  -netdev user,id=net0,hostfwd=tcp::3389-:3389 \
-  -device e1000,netdev=net0 \
-  -display sdl,gl=on -vga std \
-  -usb -device usb-tablet \
-  -boot order=c
+./start.sh
 ```
-※ドライバ導入後は `if=ide` → `if=virtio`、`e1000` → `virtio-net-pci`、`vga std` → `vga virtio` に書き換えることで高速化できます。
+
+### 2回目以降 (ドライバ導入後)
+`virtio-win-guest-tools.exe` のインストール完了後は、こちらの高速化設定を使用してください。
+
+```bash
+./start-virtio.sh
+```
+
+### 各スクリプトの役割
+- **start.sh**: 互換性重視（IDE/e1000/vga-std）。ドライバ未導入時用。
+- **start-virtio.sh**: パフォーマンス重視（VirtIO）。ドライバ導入後に推奨。
 
 ### Windows内での初期作業
 1. **Dドライブの認識**: 「ディスクの管理」から `data-storage.qcow2` をGPTで初期化し、NTFSでフォーマット。
