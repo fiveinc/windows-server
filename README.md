@@ -10,7 +10,7 @@ Arch Linux / NixOS (Sway) 環境で、Windows Server 評価版 (180日) を「�
 | :--- | :--- | :--- | :--- |
 | **Base (C:)** | `*.vhd` | Microsoft提供の評価版 (読み取り専用) | ❌ (除外) |
 | **Overlay (C:)** | `win-server-diff.qcow2` | OSの変更分・インストールしたソフト | ❌ (除外) |
-| **Storage (D:)** | `data-storage.qcow2` | **確定申告・NACCSのデータ本体 (50MB)** | ✅ **対象** |
+| **Storage (D:)** | `data-storage-backup.tar.xz` | **確定申告・NACCSのデータ本体 (圧縮版)** | ✅ **対象** |
 
 ---
 
@@ -34,8 +34,11 @@ aria2c -x 16 -s 16 -c "https://fedorapeople.org/groups/virt/virtio-win/direct-do
 ### 3. 仮想ディスクの初期化
 
 ```bash
-# データ用ドライブの作成 (最大50MB)
-qemu-img create -f qcow2 data-storage.qcow2 50M
+# データ用ドライブの展開 (GitHubからクローン済みの場合)
+tar -xvf data-storage-backup.tar.xz
+
+# もしバックアップがない場合に新規作成する場合 (最大50MB)
+# qemu-img create -f qcow2 data-storage.qcow2 50M
 
 # OS用差分レイヤーの作成
 qemu-img create -f qcow2 -F vpc -b 20348.169.amd64fre.fe_release_svc_refresh.210806-2348_server_serverdatacentereval_en-us.vhd win-server-diff.qcow2
@@ -69,10 +72,14 @@ Sway環境に最適化した設定です。初回はドライバ未導入のた�
 ## 🔄 GitHub同期とメンテナンス
 
 ### GitHubへのプッシュ
-Windowsをシャットダウン後、ホストOS側で実行します。
+Windowsをシャットダウン後、ホストOS側で圧縮してGitHubへ送信します。
 
 ```bash
-git add data-storage.qcow2
+# 最新の状態をバックアップとして圧縮
+tar -cvf data-storage-backup.tar.xz data-storage.qcow2
+
+# GitHubへプッシュ
+git add data-storage-backup.tar.xz
 git commit -m "確定申告データ更新 $(date +%Y-%m-%d)"
 git push origin main
 ```

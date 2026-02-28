@@ -2,4 +2,4 @@
 win-server-diff.qcow2
 virtio-win-*.iso
 *.log
-!data-storage.qcow2
+data-storage.qcow2
